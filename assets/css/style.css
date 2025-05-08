@@ -1,0 +1,6 @@
+/* Redimensionamento uniforme para a galeria */
+.img-galeria {
+    width: 100%;
+    height: 250px; /* Ajuste conforme necessário */
+    object-fit: cover;
+  }
