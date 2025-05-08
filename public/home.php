@@ -10,7 +10,7 @@
 <body>
 
   <!-- Navbar será carregada por JavaScript -->
-  <div id="navbar-container"></div>
+  <?php include '../includes/navbar.php'; ?>
 
   <!-- Banner -->
   <header class="bg-primary text-white text-center py-5">
@@ -136,11 +136,9 @@
   </section>
 
   <!-- Rodapé -->
-  <footer class="bg-dark text-white text-center py-3">
-    <p>&copy; <?php echo date("Y"); ?> Academia. Todos os direitos reservados.</p>
-  </footer>
+  <?php include '../includes/footer.php'; ?>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../assets/js/navbar.js"></script> <!-- JavaScript para injetar a navbar -->
+
 </body>
 </html>
