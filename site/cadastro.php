@@ -6,9 +6,10 @@ $mensagemErro = "";
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nome = $_POST['nome'];
     $email = $_POST['email'];
+    $telefone = $_POST['telefone'];
     $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-    $tipo = isset($_POST['tipo']) ? $_POST['tipo'] : 'cliente';
-    $foto = isset($_FILES['foto']['name']) && $_FILES['foto']['name'] !== "" ? $_FILES['foto']['name'] : null;
+    $tipo = $_POST['tipo'] ?? 'cliente';
+    $foto = !empty($_FILES['foto']['name']) ? $_FILES['foto']['name'] : null;
 
     $sqlVerifica = "SELECT email FROM usuarios WHERE email = :email";
     $stmtVerifica = $pdo->prepare($sqlVerifica);
@@ -18,18 +19,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmtVerifica->rowCount() > 0) {
         $mensagemErro = "Esse email já está cadastrado!";
     } else {
-        $sql = "INSERT INTO usuarios (nome, email, senha, tipo, foto) VALUES (:nome, :email, :senha, :tipo, :foto)";
+        $sql = "INSERT INTO usuarios (nome, email, telefone, senha, tipo, foto) VALUES (:nome, :email, :telefone, :senha, :tipo, :foto)";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':nome', $nome);
         $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':telefone', $telefone);
         $stmt->bindParam(':senha', $senha);
         $stmt->bindParam(':tipo', $tipo);
-        
-        if ($foto) {
-            $stmt->bindParam(':foto', $foto);
-        } else {
-            $stmt->bindValue(':foto', null, PDO::PARAM_NULL);
-        }
+        $stmt->bindParam(':foto', $foto);
 
         if ($stmt->execute()) {
             header("Location: ../public/home.php");
@@ -47,9 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <title>Cadastro</title>
     <link rel="stylesheet" href="../assets/css/cadastro.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+
 </head>
 <body>
-
 
     <div class="container">
         <h2>Cadastre-se</h2>
@@ -67,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <input type="password" id="senha" name="senha" placeholder="Senha:" required>
 
-            <input type="text" id="numero" name ="numero" placeholder="Número de telefone (Opcional):">
+            <input type="text" id="telefone" name ="telefone" placeholder="Número de telefone (Opcional):">
 
             <input type="hidden" id="foto" name="foto" accept="image/*">
 
@@ -82,6 +80,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <p>Já tem uma conta? <a href="login.php">Faça login</a></p>
         </form>
     </div>
+
+    <?php
+        include('../includes/footer.php');
+    ?>
 </body>
-         
 </html>
