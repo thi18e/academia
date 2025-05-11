@@ -1,4 +1,5 @@
 <?php
+session_start(); // Inicia a sessão
 require '../config/database.php';
 
 $mensagemErro = "";
@@ -11,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tipo = $_POST['tipo'] ?? 'cliente';
     $foto = !empty($_FILES['foto']['name']) ? $_FILES['foto']['name'] : null;
 
+    // Verifica se o email já está cadastrado
     $sqlVerifica = "SELECT email FROM usuarios WHERE email = :email";
     $stmtVerifica = $pdo->prepare($sqlVerifica);
     $stmtVerifica->bindParam(':email', $email);
@@ -19,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmtVerifica->rowCount() > 0) {
         $mensagemErro = "Esse email já está cadastrado!";
     } else {
+        // Insere o usuário no banco de dados
         $sql = "INSERT INTO usuarios (nome, email, telefone, senha, tipo, foto) VALUES (:nome, :email, :telefone, :senha, :tipo, :foto)";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':nome', $nome);
@@ -29,6 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->bindParam(':foto', $foto);
 
         if ($stmt->execute()) {
+            // **Armazena informações do usuário na sessão**
+            $_SESSION['usuario_id'] = $pdo->lastInsertId();
+            $_SESSION['usuario_nome'] = $nome;
+            $_SESSION['usuario_email'] = $email;
+
+            // **Redireciona para a página inicial logado**
             header("Location: ../public/home.php");
             exit();
         } else {
