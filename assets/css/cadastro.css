@@ -1,11 +1,12 @@
-/* Reset de margens e preenchimentos */
+/*
+/* Reset de margens e preenchimentos
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Definições gerais para o body */
+/* Definições gerais para o body 
 body {
     display: flex;
     flex-direction: column;
@@ -15,7 +16,7 @@ body {
     font-family: Arial, sans-serif;
 }
 
-/* Centraliza a .container no meio da tela, mas deixa espaço para o footer */
+/* Centraliza a .container no meio da tela, mas deixa espaço para o footer 
 .container {
     width: 100%;
     max-width: 400px;
@@ -24,10 +25,10 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     text-align: center;
-    margin: auto auto 20px auto; /* Centraliza verticalmente com espaço para footer */
+    margin: auto auto 20px auto; /* Centraliza verticalmente com espaço para footer 
 }
 
-/* Título */
+/* Título 
 h2 {
     font-size: 24px;
     color: #333;
@@ -35,14 +36,14 @@ h2 {
     font-weight: 600;
 }
 
-/* Estilo para o formulário */
+/* Estilo para o formulário 
 form {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Adiciona espaçamento entre os campos */
+    gap: 15px; /* Adiciona espaçamento entre os campos 
 }
 
-/* Inputs */
+/* Inputs 
 input[type="text"],
 input[type="email"],
 input[type="password"] {
@@ -62,7 +63,7 @@ input[type="password"]:focus {
     border-color: #007bff;
 }
 
-/* Estilo para o botão */
+/* Estilo para o botão 
 button {
     width: 100%;
     padding: 15px;
@@ -77,7 +78,8 @@ button {
 
 button:hover {
     background-color: #0056b3;
-}
+} 
+*/
 
 /* Link de login */
 .link-login {
