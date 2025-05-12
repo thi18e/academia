@@ -8,23 +8,23 @@
 /* Definições gerais para o body */
 body {
     display: flex;
-    justify-content: center; /* Centraliza horizontalmente */
-    align-items: center; /* Centraliza verticalmente */
-    height: 100vh;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
     background-color: #f0f0f0;
     font-family: Arial, sans-serif;
 }
 
-/* Container principal */
+/* Centraliza a .container no meio da tela, mas deixa espaço para o footer */
 .container {
     width: 100%;
-    max-width: 400px; /* Tamanho máximo do formulário */
-    background-color: rgba(255, 255, 255, 0.8); /* Fundo branco com opacidade */
+    max-width: 400px;
+    background-color: rgba(255, 255, 255, 0.8);
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    text-align: center; /* Centraliza o conteúdo dentro da container */
+    text-align: center;
+    margin: auto auto 20px auto; /* Centraliza verticalmente com espaço para footer */
 }
 
 /* Título */
