@@ -1,3 +1,14 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+
+  // Verifica se o usuário está logado
+  $paginaDestino = isset($_SESSION['usuario_id']) ? '../site/marcarAgendamento.php' : '../site/login.php';
+?>
+
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -20,41 +31,42 @@
     </div>
   </header>
 
+
   <!-- Agendar Experimental -->
-  <section id="agendar" class="py-5">
+<section id="agendar" class="py-5">
     <div class="container">
-      <h2 class="text-center mb-4">Agende seu Experimental</h2>
-      <div class="row justify-content-center">
-        <div class="col-md-4">
-          <div class="card text-center">
-            <div class="card-header">Spinning</div>
-            <div class="card-body">
-              <p class="card-text">Experimente uma aula de spinning e conheça a nossa energia!</p>
-              <a href="registro.php?tipo=spinning" class="btn btn-primary">Agendar Spinning</a>
+        <h2 class="text-center mb-4">Agende aqui!</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-header">Spinning</div>
+                    <div class="card-body">
+                        <p class="card-text">Experimente uma aula de spinning e conheça a nossa energia!</p>
+                        <a href="<?= $paginaDestino ?>" class="btn btn-primary">Agendar Spinning</a>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-        <div class="col-md-4 mt-3 mt-md-0">
-          <div class="card text-center">
-            <div class="card-header">Musculação</div>
-            <div class="card-body">
-              <p class="card-text">Venha experimentar a nossa área de musculação com equipamentos modernos.</p>
-              <a href="registro.php?tipo=musculacao" class="btn btn-primary">Agendar Musculação</a>
+            <div class="col-md-4 mt-3 mt-md-0">
+                <div class="card text-center">
+                    <div class="card-header">Musculação</div>
+                    <div class="card-body">
+                        <p class="card-text">Venha experimentar a nossa área de musculação com equipamentos modernos.</p>
+                        <a href="<?= $paginaDestino ?>" class="btn btn-primary">Agendar Musculação</a>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-        <div class="col-md-4 mt-3 mt-md-0">
-          <div class="card text-center">
-            <div class="card-header">Avaliação Física</div>
-            <div class="card-body">
-              <p class="card-text">Agende uma avaliação física para começar seu plano personalizado.</p>
-              <a href="registro.php?tipo=avaliacao" class="btn btn-primary">Agendar Avaliação</a>
+            <div class="col-md-4 mt-3 mt-md-0">
+                <div class="card text-center">
+                    <div class="card-header">Avaliação Física</div>
+                    <div class="card-body">
+                        <p class="card-text">Agende uma avaliação física para começar seu plano personalizado.</p>
+                        <a href="<?= $paginaDestino ?>" class="btn btn-primary">Agendar Avaliação</a>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
-  </section>
+</section>
 
   <!-- Sobre -->
   <section id="sobre" class="py-5">
