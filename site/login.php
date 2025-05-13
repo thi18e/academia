@@ -1,5 +1,9 @@
 <?php
-session_start(); // Inicia a sessão
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Inicia a sessão
 require '../config/database.php'; // Conectando ao banco
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
