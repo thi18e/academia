@@ -1,7 +1,6 @@
-<!-- navbaragendamento.php -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
   <div class="container">
-    <a class="navbar-brand" href="#">Academia</a>
+    <a class="navbar-brand" href="../public/home.php">Academia</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -21,5 +20,4 @@
   </div>
 </nav>
 
-<!-- Espaço para empurrar o conteúdo para baixo, abaixo do navbar fixo -->
 <div style="height: 70px;"></div>

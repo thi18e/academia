@@ -1,9 +1,4 @@
 <?php
-
-
-?>
-
-<?php
 require '../config/database.php';
 
     if (session_status() === PHP_SESSION_NONE) {
@@ -39,9 +34,10 @@ $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Meus Agendamentos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light p-4">
+<body class="d-flex flex-column min-vh-100 bg-light">
 
 <?php include '../includes/navbaragendamento.php'; ?>
+
 
 <div class="container">
     <h2>Meus Agendamentos</h2>

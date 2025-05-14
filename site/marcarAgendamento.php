@@ -66,26 +66,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <title>Marcar Agendamento</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Bootstrap 5 JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-light p-4">
+
+<body class="d-flex flex-column min-vh-100 bg-light">
 
 <?php include '../includes/navbaragendamento.php'; ?>
 
-<div class="container">
+<div class="container flex-grow-1">
     <h2>Marcar Agendamento</h2>
     <form method="POST" class="mt-4">
         <input type="hidden" name="cliente_id" value="1"> <!-- ajuste conforme login -->
 
         <div class="mb-3">
             <label for="profissional" class="form-label">Profissional</label>
-            <select name="profissional_id" class="form-select" required>
+            <select name="profissional_id" class="form-select w-50" required>
                 <?php foreach($profissionais as $p): ?>
                     <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nome']) ?></option>
                 <?php endforeach; ?>
@@ -94,7 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="mb-3">
             <label for="servico" class="form-label">Serviço</label>
-            <select name="servico_id" class="form-select" required>
+            <select name="servico_id" class="form-select w-50" required>
                 <?php foreach($servicos as $s): ?>
                     <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nome']) ?></option>
                 <?php endforeach; ?>
@@ -103,12 +98,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="mb-3">
             <label for="data" class="form-label">Data</label>
-            <input type="date" name="data" class="form-control" required>
+            <input type="date" name="data" class="form-control w-50" required>
         </div>
 
         <div class="mb-3">
             <label for="hora" class="form-label">Hora</label>
-            <input type="time" name="hora" class="form-control" required>
+            <input type="time" name="hora" class="form-control w-50" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Agendar</button>
@@ -116,6 +111,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
 <?php include '../includes/footer.php'; ?>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
