@@ -1,29 +1,36 @@
 <?php
 require '../config/database.php';
 
-    if (session_status() === PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
 
-    }
+if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['usuario_tipo'])) {
+    header('Location: login.php');
+    exit();
+}
 
-    if (!isset($_SESSION['usuario_id'])) {
-        // Redireciona para a página de login
-        header('Location: login.php');
-        exit();
-    }
-
-// Exemplo com cliente_id fixo = 1
-$cliente_id = 1;
+$usuario_id = $_SESSION['usuario_id'];
+$usuario_tipo = $_SESSION['usuario_tipo'];
+$eh_profissional = ($usuario_tipo === 'profissional');
 
 $stmt = $pdo->prepare("
-    SELECT a.id, s.nome AS servico, u.nome AS profissional, a.data_hora_inicio, a.data_hora_fim, a.status
+    SELECT a.id, s.nome AS servico, 
+           CASE 
+               WHEN a.profissional_id = :usuario_id THEN c.nome
+               ELSE p.nome 
+           END AS envolvido, 
+           a.data_hora_inicio, a.data_hora_fim, a.status
     FROM agendamentos a
     JOIN servicos s ON a.servico_id = s.id
-    JOIN usuarios u ON a.profissional_id = u.id
-    WHERE a.cliente_id = ?
+    JOIN usuarios p ON a.profissional_id = p.id
+    JOIN usuarios c ON a.cliente_id = c.id
+    WHERE a.profissional_id = :usuario_id OR a.cliente_id = :usuario_id
     ORDER BY a.data_hora_inicio DESC
 ");
-$stmt->execute([$cliente_id]);
+
+$stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
+$stmt->execute();
 $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -36,27 +43,32 @@ $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-<?php include '../includes/navbaragendamento.php'; ?>
+<?php if ($eh_profissional) {
+    include '../includes/navbarprof.php';
+} else {
+    include '../includes/navbaragendamento.php';
+}
+?>
 
-
-<div class="container">
+<div class="container py-4">
     <h2>Meus Agendamentos</h2>
+
     <table class="table table-bordered table-striped mt-4">
         <thead class="table-dark">
             <tr>
                 <th>Serviço</th>
-                <th>Profissional</th>
+                <th><?= $eh_profissional ? 'Cliente' : 'Profissional' ?></th>
                 <th>Início</th>
                 <th>Fim</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody>
-        <?php if (count($resultados) > 0): ?>
-            <?php foreach($resultados as $row): ?>
+        <?php if (!empty($resultados)): ?>
+            <?php foreach ($resultados as $row): ?>
                 <tr>
                     <td><?= htmlspecialchars($row['servico']) ?></td>
-                    <td><?= htmlspecialchars($row['profissional']) ?></td>
+                    <td><?= htmlspecialchars($row['envolvido']) ?></td>
                     <td><?= date('d/m/Y H:i', strtotime($row['data_hora_inicio'])) ?></td>
                     <td><?= date('d/m/Y H:i', strtotime($row['data_hora_fim'])) ?></td>
                     <td><span class="badge bg-secondary"><?= ucfirst(htmlspecialchars($row['status'])) ?></span></td>
@@ -70,6 +82,7 @@ $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </tbody>
     </table>
 </div>
-    <?php include '../includes/footer.php'; ?>
+
+<?php include '../includes/footer.php'; ?>
 </body>
 </html>

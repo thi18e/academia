@@ -1,4 +1,4 @@
-=<?php 
+<?php 
 require '../config/database.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -6,10 +6,11 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['usuario_id'])) {
-    // Redireciona para a página de login
     header('Location: login.php');
     exit();
 }
+
+$usuario_id = $_SESSION['usuario_id'];
 
 // Busca profissionais do banco
 $profissionais = $pdo->query("SELECT id, nome FROM usuarios WHERE tipo = 'profissional'")->fetchAll();
@@ -17,44 +18,71 @@ $profissionais = $pdo->query("SELECT id, nome FROM usuarios WHERE tipo = 'profis
 // Busca serviços ativos do banco
 $servicos = $pdo->query("SELECT id, nome FROM servicos WHERE ativo = 1")->fetchAll();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $cliente_id = $_POST['cliente_id']; // ou pegue da sessão
+// Variável para mensagem
+$mensagem = '';
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $cliente_id = $usuario_id;
     $profissional_id = $_POST['profissional_id'];
     $servico_id = $_POST['servico_id'];
-    $data = $_POST['data'];  // Data separada
-    $hora = $_POST['hora'];  // Hora separada
+    $data = $_POST['data'];
+    $hora = $_POST['hora'];
 
-    // Combina data e hora em um único valor para o agendamento
     $data_hora_inicio = $data . ' ' . $hora . ':00';
+    $inicio = new DateTime($data_hora_inicio);
+    $agora = new DateTime();
 
-    // Criar um objeto DateTime para a data/hora enviada
-    $data_hora_inicio_obj = new DateTime($data_hora_inicio);
-    $data_hora_atual = new DateTime();  // Obtém a data e hora atual
-
-    // Verifica se a data/hora escolhida é no passado
-    if ($data_hora_inicio_obj < $data_hora_atual) {
-        echo "<div class='alert alert-danger'>Não é possível agendar para uma data/hora no passado.</div>";
+    if ($inicio < $agora) {
+        $mensagem = "<div class='alert alert-danger mt-3'>Você não pode agendar para o passado.</div>";
     } else {
-        // Buscar duração do serviço com base no ID enviado
+        // Busca duração do serviço
         $stmt = $pdo->prepare("SELECT duracao FROM servicos WHERE id = ?");
         $stmt->execute([$servico_id]);
         $duracao = $stmt->fetchColumn();
 
         if ($duracao) {
-            $inicio = $data_hora_inicio_obj;
             $fim = clone $inicio;
             $fim->modify("+{$duracao} minutes");
-            $data_hora_fim = $fim->format("Y-m-d H:i:s");
 
-            // Inserir agendamento
-            $stmt = $pdo->prepare("INSERT INTO agendamentos (cliente_id, profissional_id, servico_id, data_hora_inicio, data_hora_fim) VALUES (?, ?, ?, ?, ?)");
-            if ($stmt->execute([$cliente_id, $profissional_id, $servico_id, $data_hora_inicio, $data_hora_fim])) {
-                echo "<div class='alert alert-success'>Agendamento realizado com sucesso!</div>";
+            $data_hora_fim = $fim->format("Y-m-d H:i:s");
+            $data_hora_inicio = $inicio->format("Y-m-d H:i:s");
+
+            // Verifica conflito com o cliente
+            $stmtCliente = $pdo->prepare("
+                SELECT COUNT(*) FROM agendamentos
+                WHERE cliente_id = ? AND status IN ('confirmado', 'concluido')
+                AND data_hora_inicio < ? AND data_hora_fim > ?
+            ");
+            $stmtCliente->execute([$cliente_id, $data_hora_fim, $data_hora_inicio]);
+            $conflitoCliente = $stmtCliente->fetchColumn();
+
+            // Verifica conflito com o profissional
+            $stmtProf = $pdo->prepare("
+                SELECT COUNT(*) FROM agendamentos
+                WHERE profissional_id = ? AND status IN ('confirmado', 'concluido')
+                AND data_hora_inicio < ? AND data_hora_fim > ?
+            ");
+            $stmtProf->execute([$profissional_id, $data_hora_fim, $data_hora_inicio]);
+            $conflitoProf = $stmtProf->fetchColumn();
+
+            if ($conflitoCliente > 0) {
+                $mensagem = "<div class='alert alert-warning mt-3'>Você já tem um agendamento nesse horário.</div>";
+            } elseif ($conflitoProf > 0) {
+                $mensagem = "<div class='alert alert-warning mt-3'>O profissional já tem um atendimento nesse horário.</div>";
             } else {
-                echo "<div class='alert alert-danger'>Erro ao agendar.</div>";
+                // Inserção do agendamento
+                $stmt = $pdo->prepare("
+                    INSERT INTO agendamentos (cliente_id, profissional_id, servico_id, data_hora_inicio, data_hora_fim)
+                    VALUES (?, ?, ?, ?, ?)
+                ");
+                if ($stmt->execute([$cliente_id, $profissional_id, $servico_id, $data_hora_inicio, $data_hora_fim])) {
+                    $mensagem = "<div class='alert alert-success mt-3'>Agendamento realizado com sucesso!</div>";
+                } else {
+                    $mensagem = "<div class='alert alert-danger mt-3'>Erro ao agendar. Tente novamente.</div>";
+                }
             }
         } else {
-            echo "<div class='alert alert-warning'>Serviço não encontrado.</div>";
+            $mensagem = "<div class='alert alert-warning mt-3'>Serviço inválido.</div>";
         }
     }
 }
@@ -73,14 +101,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <?php include '../includes/navbaragendamento.php'; ?>
 
-<div class="container flex-grow-1">
+<div class="container flex-grow-1 py-4">
     <h2>Marcar Agendamento</h2>
-    <form method="POST" class="mt-4">
-        <input type="hidden" name="cliente_id" value="1"> <!-- ajuste conforme login -->
 
+    <?= $mensagem ?>
+
+    <form method="POST" class="mt-4">
         <div class="mb-3">
             <label for="profissional" class="form-label">Profissional</label>
             <select name="profissional_id" class="form-select w-50" required>
+                <option value="" disabled selected>Selecione</option>
                 <?php foreach($profissionais as $p): ?>
                     <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nome']) ?></option>
                 <?php endforeach; ?>
@@ -90,6 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="mb-3">
             <label for="servico" class="form-label">Serviço</label>
             <select name="servico_id" class="form-select w-50" required>
+                <option value="" disabled selected>Selecione</option>
                 <?php foreach($servicos as $s): ?>
                     <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nome']) ?></option>
                 <?php endforeach; ?>
@@ -111,7 +142,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
 <?php include '../includes/footer.php'; ?>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
