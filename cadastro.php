@@ -1,5 +1,4 @@
 <?php
-// Inicia a sessão apenas se não estiver ativa
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -8,27 +7,26 @@ require '../config/database.php';
 
 $mensagemErro = "";
 
-// Verifica se o formulário foi enviado via POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nome = trim($_POST['nome']);
     $email = trim($_POST['email']);
     $telefone = trim($_POST['telefone']);
     $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
     $tipo = $_POST['tipo'] ?? 'cliente';
-    
-    // Lida com o upload de imagem corretamente
+    $plano = $_POST['plano'];
+
+    $precos = ["Básico" => 49.90, "Premium" => 79.90];
+    $precoPlano = $precos[$plano];
+
     $foto = null;
     if (!empty($_FILES['foto']['name'])) {
         $uploadDir = '../uploads/';
         $foto = $uploadDir . basename($_FILES['foto']['name']);
-        
-        // Move o arquivo para a pasta de uploads
         if (!move_uploaded_file($_FILES['foto']['tmp_name'], $foto)) {
             $mensagemErro = "Erro ao fazer upload da foto.";
         }
     }
 
-    // Verifica se o email já está cadastrado
     $sqlVerifica = "SELECT id FROM usuarios WHERE email = :email";
     $stmtVerifica = $pdo->prepare($sqlVerifica);
     $stmtVerifica->bindParam(':email', $email);
@@ -38,34 +36,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $mensagemErro = "Esse email já está cadastrado!";
     } else {
         try {
-            // Insere o usuário no banco de dados
-            $sql = "INSERT INTO usuarios (nome, email, telefone, senha, tipo, foto) 
-                    VALUES (:nome, :email, :telefone, :senha, :tipo, :foto)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->bindParam(':nome', $nome);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':telefone', $telefone);
-            $stmt->bindParam(':senha', $senha);
-            $stmt->bindParam(':tipo', $tipo);
-            $stmt->bindParam(':foto', $foto);
+            $pdo->beginTransaction();
 
-            if ($stmt->execute()) {
-                // Armazena informações do usuário na sessão
-                $_SESSION['usuario_id'] = $pdo->lastInsertId();
-                $_SESSION['usuario_nome'] = $nome;
-                $_SESSION['usuario_email'] = $email;
+            $sqlUsuario = "INSERT INTO usuarios (nome, email, telefone, senha, tipo, foto) VALUES (:nome, :email, :telefone, :senha, :tipo, :foto)";
+            $stmtUsuario = $pdo->prepare($sqlUsuario);
+            $stmtUsuario->bindParam(':nome', $nome);
+            $stmtUsuario->bindParam(':email', $email);
+            $stmtUsuario->bindParam(':telefone', $telefone);
+            $stmtUsuario->bindParam(':senha', $senha);
+            $stmtUsuario->bindParam(':tipo', $tipo);
+            $stmtUsuario->bindParam(':foto', $foto);
+            $stmtUsuario->execute();
 
-                // Redireciona para a página inicial logado
-                header("Location: ../public/home.php");
-                exit();
-            } else {
-                $mensagemErro = "Erro ao cadastrar usuário.";
-            }
+            $usuarioId = $pdo->lastInsertId();
+
+            $sqlPlano = "INSERT INTO planos (cliente_id, nome, preco) VALUES (:cliente_id, :nome, :preco)";
+            $stmtPlano = $pdo->prepare($sqlPlano);
+            $stmtPlano->bindParam(':cliente_id', $usuarioId);
+            $stmtPlano->bindParam(':nome', $plano);
+            $stmtPlano->bindParam(':preco', $precoPlano);
+            $stmtPlano->execute();
+
+            $pdo->commit();
+
+            $_SESSION['usuario_id'] = $usuarioId;
+            $_SESSION['usuario_nome'] = $nome;
+            $_SESSION['usuario_email'] = $email;
+
+            header("Location: ../public/home.php");
+            exit();
         } catch (PDOException $e) {
-            $mensagemErro = "Erro no banco de dados: " . $e->getMessage();
+            $pdo->rollBack();
+            $mensagemErro = "Erro ao cadastrar usuário: " . $e->getMessage();
         }
     }
 }
+
+$_SESSION['usuario_id'] = $pdo->lastInsertId();
+$_SESSION['usuario_nome'] = $nome;
+$_SESSION['usuario_email'] = $email;
+$_SESSION['usuario_tipo'] = $tipo;
+
 ?>
 
 <!DOCTYPE html>
@@ -73,19 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Cadastro</title>
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Seus estilos personalizados -->
     <link rel="stylesheet" href="../assets/css/cadastro.css">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body class="bg-light">
 
-    <?php
-    include '../includes/navbarlogin.php';
-    ?>
+    <?php include '../includes/navbarlogin.php'; ?>
 
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
         <div class="card shadow p-4 w-100" style="max-width: 500px;">
@@ -100,33 +105,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <form method="POST" action="cadastro.php" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="nome" class="form-label">Nome completo:</label>
-                    <input type="text" id="nome" name="nome" class="form-control" placeholder="Digite seu nome" required>
+                    <input type="text" id="nome" name="nome" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
                     <label for="email" class="form-label">Email:</label>
-                    <input type="email" id="email" name="email" class="form-control" placeholder="Digite seu email" required>
+                    <input type="email" id="email" name="email" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
                     <label for="senha" class="form-label">Senha:</label>
-                    <input type="password" id="senha" name="senha" class="form-control" placeholder="Crie uma senha" required>
+                    <input type="password" id="senha" name="senha" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
                     <label for="telefone" class="form-label">Número de telefone (Opcional):</label>
-                    <input type="text" id="telefone" name="telefone" class="form-control" placeholder="(00) 00000-0000">
+                    <input type="text" id="telefone" name="telefone" class="form-control">
                 </div>
 
-                <!-- Checkbox para definir se o usuário é um profissional -->
+                <div class="mb-3">
+                    <label for="plano" class="form-label">Escolha seu plano:</label>
+                    <select id="plano" name="plano" class="form-control" required>
+                        <option value="Básico">Básico - R$49,90</option>
+                        <option value="Premium">Premium - R$79,90</option>
+                    </select>
+                </div>
+
                 <div class="mb-3 form-check">
                     <input type="checkbox" class="form-check-input" id="souProfissional" onchange="atualizarTipo()">
                     <label class="form-check-label" for="souProfissional">Sou um profissional</label>
                 </div>
 
-                <!-- Campo oculto para armazenar o tipo de usuário -->
                 <input type="hidden" name="tipo" id="tipoUsuario" value="cliente">
-
                 <input type="hidden" id="foto" name="foto" accept="image/*">
 
                 <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
@@ -140,17 +150,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <?php include('../includes/footer.php'); ?>
 
-    <!-- Bootstrap JS (opcional) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
     function atualizarTipo() {
         let checkbox = document.getElementById("souProfissional");
         let tipoUsuario = document.getElementById("tipoUsuario");
-        
-        // Se o checkbox estiver marcado, define o tipo como 'profissional'
         tipoUsuario.value = checkbox.checked ? "profissional" : "cliente";
     }
     </script>
+
 </body>
 </html>
