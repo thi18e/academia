@@ -1,0 +1,37 @@
+
+    /* Redimensionamento uniforme para a galeria */
+    .img-galeria {
+        width: 100%;
+        height: 250px; /* Ajuste conforme necessário */
+        object-fit: cover;
+    }
+
+    footer {
+        background-color: #212529;
+        color: white;
+        text-align: center;
+        padding: 15px;
+        margin-top: auto; /* empurra para o final da página */
+    }
+
+    /* Personalizando o botão de enviar para azul */
+    .btn-success {
+        background-color: #007bff; /* Azul */
+        border-color: #007bff;
+    }
+
+    .btn-success:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    
+    }
+    /* Personalizando o botão "Enviar" para azul */
+.btn-primary {
+  background-color: #007bff; /* Cor azul */
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; /* Azul mais escuro ao passar o mouse */
+  border-color: #0056b3;
+}
