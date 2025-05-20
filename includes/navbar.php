@@ -1,10 +1,8 @@
 <?php
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-$usuarioNome = isset($_SESSION['usuario_nome']) ? $_SESSION['usuario_nome'] : null;
+$usuarioNome = $_SESSION['usuario']['nome'] ?? null;
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -23,7 +21,7 @@ $usuarioNome = isset($_SESSION['usuario_nome']) ? $_SESSION['usuario_nome'] : nu
         <?php if ($usuarioNome): ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle text-white" href="#" id="usuarioDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <?php echo htmlspecialchars($usuarioNome); ?>
+              <?= htmlspecialchars($usuarioNome) ?>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuarioDropdown">
               <li><a class="dropdown-item" href="../site/perfil.php">Perfil</a></li>
