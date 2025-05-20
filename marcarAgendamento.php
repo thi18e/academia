@@ -5,12 +5,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['usuario_id'])) {
+if (!isset($_SESSION['usuario']) || !isset($_SESSION['usuario']['id'])) {
     header('Location: login.php');
     exit();
 }
 
-$usuario_id = $_SESSION['usuario_id'];
+$usuario_id = $_SESSION['usuario']['id'];
+
 
 // Busca profissionais do banco
 $profissionais = $pdo->query("SELECT id, nome FROM usuarios WHERE tipo = 'profissional'")->fetchAll();
