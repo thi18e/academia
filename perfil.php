@@ -1,14 +1,17 @@
 <?php
-session_start();
+
+    session_start();
+
 require_once '../config/database.php'; // Aqui você deve garantir que $pdo está definido
 
 // Verifica se o usuário está logado
-if (!isset($_SESSION['usuario_id'])) {
+if (!isset($_SESSION['usuario']) || !isset($_SESSION['usuario']['id'])) {
     header('Location: login.php');
     exit();
 }
 
-$usuario_id = $_SESSION['usuario_id'];
+$usuario_id = $_SESSION['usuario']['id'];
+
 
 // Busca informações do usuário
 $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");

@@ -59,9 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $pdo->commit();
 
-            $_SESSION['usuario_id'] = $usuarioId;
-            $_SESSION['usuario_nome'] = $nome;
-            $_SESSION['usuario_email'] = $email;
+            $_SESSION['usuario'] = [
+                'id' => $usuarioId,
+                'nome' => $nome,
+                'email' => $email
+            ];
+;
 
             header("Location: ../public/home.php");
             exit();
@@ -71,12 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
-
-$_SESSION['usuario_id'] = $pdo->lastInsertId();
-$_SESSION['usuario_nome'] = $nome;
-$_SESSION['usuario_email'] = $email;
-$_SESSION['usuario_tipo'] = $tipo;
-
 ?>
 
 <!DOCTYPE html>

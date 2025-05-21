@@ -31,6 +31,66 @@ $agendamentos = $pdo->query("
     WHERE a.status = 'confirmado'
     ORDER BY a.data_hora_inicio ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
+
+// Processar formulário
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $cliente_id = $_POST['cliente_id'];
+    $profissional_id = $_POST['profissional_id'];
+    $servico_id = $_POST['servico_id'];
+    $data_hora_inicio = $_POST['data_hora_inicio'];
+    $data_hora_fim = $_POST['data_hora_fim'];
+    $status = $_POST['status'];
+
+    $erros = [];
+
+    // Verifica se início é antes do fim
+    if (strtotime($data_hora_inicio) >= strtotime($data_hora_fim)) {
+        $erros[] = "A data/hora de início deve ser antes da data/hora de fim.";
+    }
+
+    // Verifica conflito com outros agendamentos do mesmo profissional ou cliente (exceto o atual)
+    $stmt = $pdo->prepare("
+        SELECT * FROM agendamentos 
+        WHERE id != ? AND (
+            (profissional_id = :profissional_id OR cliente_id = :cliente_id)
+            AND (
+                (:inicio BETWEEN data_hora_inicio AND data_hora_fim)
+                OR (:fim BETWEEN data_hora_inicio AND data_hora_fim)
+                OR (data_hora_inicio BETWEEN :inicio AND :fim)
+                OR (data_hora_fim BETWEEN :inicio AND :fim)
+            )
+        )
+    ");
+    $stmt->execute([
+        $id,
+        'profissional_id' => $profissional_id,
+        'cliente_id' => $cliente_id,
+        'inicio' => $data_hora_inicio,
+        'fim' => $data_hora_fim
+    ]);
+    $conflitos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if ($conflitos) {
+        $erros[] = "Conflito de horário com outro agendamento para este profissional ou cliente.";
+    }
+
+    if (empty($erros)) {
+        $stmt = $pdo->prepare("
+            UPDATE agendamentos 
+            SET cliente_id = ?, profissional_id = ?, servico_id = ?, 
+                data_hora_inicio = ?, data_hora_fim = ?, status = ? 
+            WHERE id = ?
+        ");
+        $stmt->execute([
+            $cliente_id, $profissional_id, $servico_id,
+            $data_hora_inicio, $data_hora_fim, $status,
+            $id
+        ]);
+
+        header("Location: admin.php");
+        exit;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -139,7 +199,7 @@ $agendamentos = $pdo->query("
                                 <td><?= date('d/m/Y H:i', strtotime($ag['data_hora_fim'])) ?></td>
                                 <td><?= ucfirst(htmlspecialchars($ag['status'])) ?></td>
                                 <td>
-                                    <a href="editar_agendamento.php?id=<?= $ag['id'] ?>" class="btn btn-sm btn-warning me-1">Editar</a>
+                                    <a href="editar_geral.php?id=<?= $ag['id'] ?>" class="btn btn-sm btn-warning me-1">Editar</a>
                                     <a href="excluir_agendamento.php?id=<?= $ag['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Tem certeza que deseja excluir este agendamento?');">Excluir</a>
                                 </td>
                             </tr>
