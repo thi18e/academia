@@ -4,7 +4,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Verifica se o usuário está logado
-$paginaDestino = isset($_SESSION['usuario_id']) ? '../site/marcarAgendamento.php' : '../site/login.php';
+$paginaDestino = isset($_SESSION['usuario']) && isset($_SESSION['usuario']['id']) ? '../site/marcarAgendamento.php' : '../site/login.php';
+
 ?>
 
 <!DOCTYPE html>
